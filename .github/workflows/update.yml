@@ -1,0 +1,56 @@
+name: Update rule lists
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/build_ingit.py'
+      - 'a.list'
+      - '.github/workflows/update.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-rules:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build rules
+        run: python scripts/build_ingit.py
+
+      - name: Check for a.list changes
+        id: changes
+        run: |
+          if git diff --quiet -- a.list; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push updated rules
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add a.list
+          git commit -m "chore: update a.list"
+          git push origin HEAD:main
+
+      - name: No changes
+        if: steps.changes.outputs.changed == 'false'
+        run: echo "a.list is up to date"
