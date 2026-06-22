@@ -17,12 +17,6 @@ source_urls = [
 BASE_DIR = Path(__file__).resolve().parents[1]
 output_file = BASE_DIR / "a.list"
 
-manual_rules = [
-    "DOMAIN-SUFFIX,thinkingmachines.ai",
-    "DOMAIN-SUFFIX,github.com",
-    "DOMAIN-SUFFIX,githubusercontent.com",
-]
-
 seen = set()
 
 
@@ -259,13 +253,6 @@ rules = []
 if output_file.exists():
     existing_count = add_rules_from_text(output_file.read_text(encoding="utf-8"), rules)
     print(f"Preserved {existing_count} existing rules from {output_file}")
-
-manual_count = 0
-for raw_rule in manual_rules:
-    rule = normalize_line(raw_rule)
-    if add_rule(rule, rules):
-        manual_count += 1
-print(f"Loaded {manual_count} manual rules")
 
 for url in source_urls:
     print(f"Fetching: {url}")
